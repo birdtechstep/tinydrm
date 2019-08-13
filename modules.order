@@ -1,0 +1,9 @@
+kernel/drivers/gpu/drm/tinydrm/core/tinydrm.ko
+kernel/drivers/gpu/drm/tinydrm/mipi-dbi.ko
+kernel/drivers/gpu/drm/tinydrm/ili9225.ko
+kernel/drivers/gpu/drm/tinydrm/ili9341.ko
+kernel/drivers/gpu/drm/tinydrm/ili9488.ko
+kernel/drivers/gpu/drm/tinydrm/mi0283qt.ko
+kernel/drivers/gpu/drm/tinydrm/repaper.ko
+kernel/drivers/gpu/drm/tinydrm/st7586.ko
+kernel/drivers/gpu/drm/tinydrm/st7735r.ko

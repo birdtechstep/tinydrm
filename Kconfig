@@ -31,6 +31,16 @@ config TINYDRM_ILI9341
 
 	  If M is selected the module will be called ili9341.
 
+config TINYDRM_ILI9488
+	tristate "DRM support for ILI9488 display panels"
+	depends on DRM_TINYDRM && SPI
+	depends on BACKLIGHT_CLASS_DEVICE
+	select TINYDRM_MIPI_DBI
+	help
+	  DRM driver for the following Ilitek ILI9488 panels:
+	  * SX035HV006 3.5" 320x480 TFT (MakerLAB 3.5")
+	  If M is selected the module will be called ili9488.
+
 config TINYDRM_MI0283QT
 	tristate "DRM support for MI0283QT"
 	depends on DRM_TINYDRM && SPI

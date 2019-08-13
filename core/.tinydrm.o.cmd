@@ -1,0 +1,1 @@
+cmd_drivers/gpu/drm/tinydrm/core/tinydrm.o := ld  -EL    -r -o drivers/gpu/drm/tinydrm/core/tinydrm.o drivers/gpu/drm/tinydrm/core/tinydrm-core.o drivers/gpu/drm/tinydrm/core/tinydrm-pipe.o drivers/gpu/drm/tinydrm/core/tinydrm-helpers.o 
