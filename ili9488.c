@@ -8,27 +8,14 @@
  * Copyright 2016 Noralf Trønnes
  */
 
-#include <drm/tinydrm/tinydrm.h>
-
-#include <linux/backlight.h>
-#include <linux/dma-buf.h>
 #include <linux/pm.h>
-#include <linux/spi/spi.h>
 #include <linux/swab.h>
 
 #include <drm/tinydrm/tinydrm.h>
-#include <drm/tinydrm/tinydrm-helpers.h>
 
-#include <drm/drm_gem_framebuffer_helper.h>
-#include <drm/tinydrm/mipi-dbi.h>
-#include <drm/tinydrm/tinydrm-helpers.h>
 #include <linux/debugfs.h>
 #include <linux/dma-buf.h>
-#include <linux/gpio/consumer.h>
-#include <linux/module.h>
 #include <linux/regulator/consumer.h>
-#include <linux/spi/spi.h>
-#include <video/mipi_display.h>
 
 #include <linux/backlight.h>
 #include <linux/delay.h>
