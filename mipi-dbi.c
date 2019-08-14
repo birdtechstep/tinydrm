@@ -230,52 +230,6 @@ int mipi_dbi_buf_copy(void *dst, struct drm_framebuffer *fb,
 }
 EXPORT_SYMBOL(mipi_dbi_buf_copy);
 
-/**
- * mipi_dbi18_buf_copy - Copy a framebuffer, transforming it if necessary
- * @dst: The destination buffer
- * @fb: The source framebuffer
- * @clip: Clipping rectangle of the area to be copied
- *
- * Returns:
- * Zero on success, negative error code on failure.
- */
-int mipi_dbi18_buf_copy(void *dst, struct drm_framebuffer *fb,
-		      struct drm_clip_rect *clip)
-{
-	struct drm_gem_cma_object *cma_obj = drm_fb_cma_get_gem_obj(fb, 0);
-	struct dma_buf_attachment *import_attach = cma_obj->base.import_attach;
-	struct drm_format_name_buf format_name;
-	void *src = cma_obj->vaddr;
-	int ret = 0;
-
-	if (import_attach) {
-		ret = dma_buf_begin_cpu_access(import_attach->dmabuf,
-					       DMA_FROM_DEVICE);
-		if (ret)
-			return ret;
-	}
-
-	switch (fb->format->format) {
-	case DRM_FORMAT_RGB565:
-		tinydrm_memcpy(dst, src, fb, clip);
-		break;
-	case DRM_FORMAT_XRGB8888:
-		tinydrm_xrgb8888_to_rgb666(dst, src, fb, clip);
-		break;
-	default:
-		dev_err_once(fb->dev->dev, "Format is not supported: %s\n",
-			     drm_get_format_name(fb->format->format,
-						 &format_name));
-		return -EINVAL;
-	}
-
-	if (import_attach)
-		ret = dma_buf_end_cpu_access(import_attach->dmabuf,
-					     DMA_FROM_DEVICE);
-	return ret;
-}
-EXPORT_SYMBOL(mipi_dbi18_buf_copy);
-
 static int mipi_dbi_fb_dirty(struct drm_framebuffer *fb,
 			     struct drm_file *file_priv,
 			     unsigned int flags, unsigned int color,
@@ -304,52 +258,6 @@ static int mipi_dbi_fb_dirty(struct drm_framebuffer *fb,
 	    fb->format->format == DRM_FORMAT_XRGB8888) {
 		tr = mipi->tx_buf;
 		ret = mipi_dbi_buf_copy(mipi->tx_buf, fb, &clip, swap);
-		if (ret)
-			return ret;
-	} else {
-		tr = cma_obj->vaddr;
-	}
-
-	mipi_dbi_command(mipi, MIPI_DCS_SET_COLUMN_ADDRESS,
-			 (clip.x1 >> 8) & 0xFF, clip.x1 & 0xFF,
-			 (clip.x2 >> 8) & 0xFF, (clip.x2 - 1) & 0xFF);
-	mipi_dbi_command(mipi, MIPI_DCS_SET_PAGE_ADDRESS,
-			 (clip.y1 >> 8) & 0xFF, clip.y1 & 0xFF,
-			 (clip.y2 >> 8) & 0xFF, (clip.y2 - 1) & 0xFF);
-
-	ret = mipi_dbi_command_buf(mipi, MIPI_DCS_WRITE_MEMORY_START, tr,
-				(clip.x2 - clip.x1) * (clip.y2 - clip.y1) * 2);
-
-	return ret;
-}
-
-static int mipi_dbi18_fb_dirty(struct drm_framebuffer *fb,
-			     struct drm_file *file_priv,
-			     unsigned int flags, unsigned int color,
-			     struct drm_clip_rect *clips,
-			     unsigned int num_clips)
-{
-	struct drm_gem_cma_object *cma_obj = drm_fb_cma_get_gem_obj(fb, 0);
-	struct tinydrm_device *tdev = fb->dev->dev_private;
-	struct mipi_dbi *mipi = mipi_dbi_from_tinydrm(tdev);
-	struct drm_clip_rect clip;
-	int ret = 0;
-	bool full;
-	void *tr;
-
-	if (!mipi->enabled)
-		return 0;
-
-	full = tinydrm_merge_clips(&clip, clips, num_clips, flags,
-				   fb->width, fb->height);
-
-	DRM_DEBUG("Flushing [FB:%d] x1=%u, x2=%u, y1=%u, y2=%u\n", fb->base.id,
-		  clip.x1, clip.x2, clip.y1, clip.y2);
-
-	if (!mipi->dc || !full ||
-	    fb->format->format == DRM_FORMAT_XRGB8888) {
-		tr = mipi->tx_buf;
-		ret = mipi_dbi18_buf_copy(mipi->tx_buf, fb, &clip);
 		if (ret)
 			return ret;
 	} else {
@@ -513,71 +421,6 @@ int mipi_dbi_init(struct device *dev, struct mipi_dbi *mipi,
 	return 0;
 }
 EXPORT_SYMBOL(mipi_dbi_init);
-
-/**
- * mipi_dbi18_init - MIPI DBI 18bits initialization
- * @dev: Parent device
- * @mipi: &mipi_dbi structure to initialize
- * @pipe_funcs: Display pipe functions
- * @driver: DRM driver
- * @mode: Display mode
- * @rotation: Initial rotation in degrees Counter Clock Wise
- *
- * This function initializes a &mipi_dbi structure and it's underlying
- * @tinydrm_device. It also sets up the display pipeline.
- *
- * Supported formats: Native RGB666 and emulated XRGB8888.
- *
- * Objects created by this function will be automatically freed on driver
- * detach (devres).
- *
- * Returns:
- * Zero on success, negative error code on failure.
- */
-int mipi_dbi18_init(struct device *dev, struct mipi_dbi *mipi,
-		  const struct drm_simple_display_pipe_funcs *pipe_funcs,
-		  struct drm_driver *driver,
-		  const struct drm_display_mode *mode, unsigned int rotation)
-{
-	size_t bufsize = mode->vdisplay * mode->hdisplay * sizeof(u16);
-	struct tinydrm_device *tdev = &mipi->tinydrm;
-	int ret;
-
-	if (!mipi->command)
-		return -EINVAL;
-
-	mutex_init(&mipi->cmdlock);
-
-	mipi->tx_buf = devm_kmalloc(dev, bufsize, GFP_KERNEL);
-	if (!mipi->tx_buf)
-		return -ENOMEM;
-
-	ret = devm_tinydrm_init(dev, tdev, &mipi_dbi_fb_funcs, driver);
-	if (ret)
-		return ret;
-
-	tdev->fb_dirty = mipi_dbi18_fb_dirty;
-
-	/* TODO: Maybe add DRM_MODE_CONNECTOR_SPI */
-	ret = tinydrm_display_pipe_init(tdev, pipe_funcs,
-					DRM_MODE_CONNECTOR_VIRTUAL,
-					mipi_dbi_formats,
-					ARRAY_SIZE(mipi_dbi_formats), mode,
-					rotation);
-	if (ret)
-		return ret;
-
-	tdev->drm->mode_config.preferred_depth = 18;
-	mipi->rotation = rotation;
-
-	drm_mode_config_reset(tdev->drm);
-
-	DRM_DEBUG_KMS("preferred_depth=%u, rotation = %u\n",
-		      tdev->drm->mode_config.preferred_depth, rotation);
-
-	return 0;
-}
-EXPORT_SYMBOL(mipi_dbi18_init);
 
 /**
  * mipi_dbi_hw_reset - Hardware reset of controller
