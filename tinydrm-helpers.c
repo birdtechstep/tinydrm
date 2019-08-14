@@ -213,46 +213,6 @@ void tinydrm_xrgb8888_to_rgb565(u16 *dst, void *vaddr,
 EXPORT_SYMBOL(tinydrm_xrgb8888_to_rgb565);
 
 /**
- * tinydrm_xrgb8888_to_rgb666 - Convert XRGB8888 to RGB666 clip buffer
- * @dst: RGB666 destination buffer
- * @vaddr: XRGB8888 source buffer
- * @fb: DRM framebuffer
- * @clip: Clip rectangle area to copy
- * @swap: Swap bytes
- *
- * Drivers can use this function for RGB666 devices that don't natively
- * support XRGB8888.
- */
-void tinydrm_xrgb8888_to_rgb666(u8 *dst, void *vaddr,
-				struct drm_framebuffer *fb,
-				struct drm_clip_rect *clip)
-{
-	size_t len = (clip->x2 - clip->x1) * sizeof(u32);
-	unsigned int x, y;
-	u32 *src, *buf;
-
-	buf = kmalloc(len, GFP_KERNEL);
-	if (!buf)
-		return;
-
-	for (y = clip->y1; y < clip->y2; y++) {
-		src = vaddr + (y * fb->pitches[0]);
-		src += clip->x1;
-		memcpy(buf, src, len);
-		src = buf;
-		for (x = clip->x1; x < clip->x2; x++) {
-			*dst++ = ((*src & 0x000000FC));
-			*dst++ = ((*src & 0x0000FC00) >> 8);
-			*dst++ = ((*src & 0x00FC0000) >> 16);
-			src++;
-		}
-	}
-
-	kfree(buf);
-}
-EXPORT_SYMBOL(tinydrm_xrgb8888_to_rgb666);
-
-/**
  * tinydrm_xrgb8888_to_gray8 - Convert XRGB8888 to grayscale
  * @dst: 8-bit grayscale destination buffer
  * @vaddr: XRGB8888 source buffer
