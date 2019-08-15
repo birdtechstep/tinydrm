@@ -7,7 +7,7 @@
 /plugin/;
 
 / {
-        compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+        compatible = "brcm,bcm2835";
 
         fragment@0 {
                 target = <&spi0>;
@@ -47,9 +47,9 @@
                                 pinctrl-names = "default";
                                 pinctrl-0 = <&pitft_pins>;
 
-                                spi-max-frequency = <62000000>;
+                                spi-max-frequency = <32000000>;
                                 rotate = <90>;
-                                fps = <60>;
+                                fps = <30>;
                                 bgr;
                                 buswidth = <8>;
                                 dc-gpios = <&gpio 27 0>;

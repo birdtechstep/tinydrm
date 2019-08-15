@@ -48,9 +48,6 @@ void tinydrm_swab16(u16 *dst, void *vaddr, struct drm_framebuffer *fb,
 void tinydrm_xrgb8888_to_rgb565(u16 *dst, void *vaddr,
 				struct drm_framebuffer *fb,
 				struct drm_clip_rect *clip, bool swap);
-void tinydrm_xrgb8888_to_rgb666(u8 *dst, void *vaddr,
-				struct drm_framebuffer *fb,
-				struct drm_clip_rect *clip);
 void tinydrm_xrgb8888_to_gray8(u8 *dst, void *vaddr, struct drm_framebuffer *fb,
 			       struct drm_clip_rect *clip);
 
