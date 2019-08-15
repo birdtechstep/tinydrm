@@ -174,7 +174,7 @@ static void sx035hv006_enable(struct drm_simple_display_pipe *pipe,
 	if (ret == 1)
 		goto out_enable;
 
-	//mipi_dbi_command(mipi, MIPI_DCS_SET_DISPLAY_OFF);
+	mipi_dbi_command(mipi, MIPI_DCS_SET_DISPLAY_OFF);
 
 	/* Positive Gamma Control */
 	mipi_dbi_command(mipi, ILI9488_CMD_POSITIVE_GAMMA_CORRECTION,
@@ -195,9 +195,11 @@ static void sx035hv006_enable(struct drm_simple_display_pipe *pipe,
 	/* VCOM Control 1 */
 	mipi_dbi_command(mipi, ILI9488_CMD_VCOM_CONTROL_1, 0x00, 0x12, 0x80);
 
+	/* Memory Access Contorl */
+	mipi_dbi_command(mipi, ILI9488_CMD_MEMORY_ACCESS_CONTROL, 0x48);
+
     /* Pixel Format */
-	//mipi_dbi_command(mipi, MIPI_DCS_SET_PIXEL_FORMAT, MIPI_DCS_PIXEL_FMT_18BIT<<1 | MIPI_DCS_PIXEL_FMT_18BIT);
-	mipi_dbi_command(mipi, MIPI_DCS_SET_PIXEL_FORMAT, 0x66);
+	mipi_dbi_command(mipi, MIPI_DCS_SET_PIXEL_FORMAT, MIPI_DCS_PIXEL_FMT_18BIT<<1 | MIPI_DCS_PIXEL_FMT_18BIT);
 
 	mipi_dbi_command(mipi, ILI9488_CMD_INTERFACE_MODE_CONTROL, 0x00);
 
@@ -231,21 +233,22 @@ static void sx035hv006_enable(struct drm_simple_display_pipe *pipe,
 
 	msleep(120);
 
-	//mipi_dbi_command(mipi, ILI9488_CMD_NORMAL_DISP_MODE_ON);
+	mipi_dbi_command(mipi, ILI9488_CMD_NORMAL_DISP_MODE_ON);
 
 	/* Display ON */
 	mipi_dbi_command(mipi, ILI9488_CMD_DISPLAY_ON);
 	msleep(100);    
+			
 out_enable:
 	switch (mipi->rotation) {
 	default:
-		addr_mode = ILI9488_MADCTL_MX;
+		addr_mode = ILI9488_MADCTL_MY;
 		break;
 	case 90:
 		addr_mode = ILI9488_MADCTL_MV;
 		break;
 	case 180:
-		addr_mode = ILI9488_MADCTL_MY;
+		addr_mode = ILI9488_MADCTL_MX;
 		break;
 	case 270:
 		addr_mode = ILI9488_MADCTL_MV | ILI9488_MADCTL_MY |
@@ -345,10 +348,32 @@ static void ili9488_shutdown(struct spi_device *spi)
 	tinydrm_shutdown(&mipi->tinydrm);
 }
 
+static int __maybe_unused ili9488_pm_suspend(struct device *dev)
+{
+	struct mipi_dbi *mipi = dev_get_drvdata(dev);
+
+	return drm_mode_config_helper_suspend(mipi->tinydrm.drm);
+}
+
+static int __maybe_unused ili9488_pm_resume(struct device *dev)
+{
+	struct mipi_dbi *mipi = dev_get_drvdata(dev);
+
+	drm_mode_config_helper_resume(mipi->tinydrm.drm);
+
+	return 0;
+}
+
+static const struct dev_pm_ops ili9488_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(ili9488_pm_suspend, ili9488_pm_resume)
+};
+
 static struct spi_driver ili9488_spi_driver = {
 	.driver = {
 		.name = "ili9488",
+		.owner = THIS_MODULE,
 		.of_match_table = ili9488_of_match,
+		.pm = &ili9488_pm_ops,
 	},
 	.id_table = ili9488_id,
 	.probe = ili9488_probe,
@@ -385,9 +410,9 @@ void tinydrm_xrgb8888_to_rgb666(u8 *dst, void *vaddr,
 		memcpy(buf, src, len);
 		src = buf;
 		for (x = clip->x1; x < clip->x2; x++) {
-			*dst++ = ((*src & 0x000000FC));
-			*dst++ = ((*src & 0x0000FC00) >> 8);
 			*dst++ = ((*src & 0x00FC0000) >> 16);
+			*dst++ = ((*src & 0x0000FC00) >> 8);
+			*dst++ = ((*src & 0x000000FC));
 			src++;
 		}
 	}
