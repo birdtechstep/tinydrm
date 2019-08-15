@@ -378,7 +378,7 @@ void tinydrm_18memcpy(void *dst, void *vaddr, struct drm_framebuffer *fb,
 		dst += len;
 	}
 }
-EXPORT_SYMBOL(tinydrm_18memcpy);
+// EXPORT_SYMBOL(tinydrm_18memcpy);
 
 /**
  * tinydrm_xrgb8888_to_rgb666 - Convert XRGB8888 to RGB666 clip buffer
@@ -420,6 +420,15 @@ void tinydrm_xrgb8888_to_rgb666(u8 *dst, void *vaddr,
 }
 EXPORT_SYMBOL(tinydrm_xrgb8888_to_rgb666);
 
+static void tinydrm_rgb565_to_rgb666(u8 *dst, void *vaddr,
+				     struct drm_framebuffer *fb,
+				     struct drm_clip_rect *clip)
+{
+	// TODO: implement conversion
+}
+EXPORT_SYMBOL(tinydrm_rgb565_to_rgb666);
+
+
 /**
  * mipi_dbi18_buf_copy - Copy a framebuffer, transforming it if necessary
  * @dst: The destination buffer
@@ -447,7 +456,7 @@ int mipi_dbi18_buf_copy(void *dst, struct drm_framebuffer *fb,
 
 	switch (fb->format->format) {
 	case DRM_FORMAT_RGB565:
-		tinydrm_18memcpy(dst, src, fb, clip);
+		tinydrm_rgb565_to_rgb666(dst, src, fb, clip);
 		break;
 	case DRM_FORMAT_XRGB8888:
 		tinydrm_xrgb8888_to_rgb666(dst, src, fb, clip);
@@ -464,7 +473,7 @@ int mipi_dbi18_buf_copy(void *dst, struct drm_framebuffer *fb,
 					     DMA_FROM_DEVICE);
 	return ret;
 }
-EXPORT_SYMBOL(mipi_dbi18_buf_copy);
+// EXPORT_SYMBOL(mipi_dbi18_buf_copy);
 
 static int mipi_dbi18_fb_dirty(struct drm_framebuffer *fb,
 			     struct drm_file *file_priv,
@@ -575,7 +584,7 @@ int mipi_dbi18_init(struct device *dev, struct mipi_dbi *mipi,
 
 	return 0;
 }
-EXPORT_SYMBOL(mipi_dbi18_init);
+// EXPORT_SYMBOL(mipi_dbi18_init);
 
 MODULE_DESCRIPTION("Ilitek ILI9488 DRM driver");
 MODULE_AUTHOR("BIRD TECHSTEP <t.artsamart@gmail.com>");
