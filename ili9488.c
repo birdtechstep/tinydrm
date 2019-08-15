@@ -144,7 +144,7 @@ static int mipi_dbi18_fb_dirty(struct drm_framebuffer *fb,
 			     struct drm_clip_rect *clips,
 			     unsigned int num_clips);
 int mipi_dbi18_buf_copy(void *dst, struct drm_framebuffer *fb,
-		      struct drm_clip_rect *clip);
+		      struct drm_clip_rect *clip, bool swap);
 
 static const struct drm_framebuffer_funcs mipi_dbi_fb_funcs = {
 	.destroy	= drm_gem_fb_destroy,
@@ -174,7 +174,7 @@ static void sx035hv006_enable(struct drm_simple_display_pipe *pipe,
 	if (ret == 1)
 		goto out_enable;
 
-	mipi_dbi_command(mipi, MIPI_DCS_SET_DISPLAY_OFF);
+	//mipi_dbi_command(mipi, MIPI_DCS_SET_DISPLAY_OFF);
 
 	/* Positive Gamma Control */
 	mipi_dbi_command(mipi, ILI9488_CMD_POSITIVE_GAMMA_CORRECTION,
@@ -188,7 +188,6 @@ static void sx035hv006_enable(struct drm_simple_display_pipe *pipe,
 			 0x05, 0x32, 0x45, 0x46, 0x04,
 			 0x0e, 0x0d, 0x35, 0x37, 0x0f);
 
-
 	/* Power Control 1,2 */
 	mipi_dbi_command(mipi, ILI9488_CMD_POWER_CONTROL_1, 0x17, 0x15);
 	mipi_dbi_command(mipi, ILI9488_CMD_POWER_CONTROL_2, 0x41);
@@ -196,42 +195,43 @@ static void sx035hv006_enable(struct drm_simple_display_pipe *pipe,
 	/* VCOM Control 1 */
 	mipi_dbi_command(mipi, ILI9488_CMD_VCOM_CONTROL_1, 0x00, 0x12, 0x80);
 
-
     /* Pixel Format */
-	mipi_dbi_command(mipi, MIPI_DCS_SET_PIXEL_FORMAT, MIPI_DCS_PIXEL_FMT_18BIT<<1 | MIPI_DCS_PIXEL_FMT_18BIT);
+	//mipi_dbi_command(mipi, MIPI_DCS_SET_PIXEL_FORMAT, MIPI_DCS_PIXEL_FMT_18BIT<<1 | MIPI_DCS_PIXEL_FMT_18BIT);
+	mipi_dbi_command(mipi, MIPI_DCS_SET_PIXEL_FORMAT, 0x66);
 
-
-	mipi_dbi_command(mipi, ILI9488_CMD_INTERFACE_MODE_CONTROL, 0x80);
-
+	mipi_dbi_command(mipi, ILI9488_CMD_INTERFACE_MODE_CONTROL, 0x00);
 
 	/* Frame Rate Control */
 	/*	Frame rate = 60.76Hz.*/
-	mipi_dbi_command(mipi, ILI9488_CMD_FRAME_RATE_CONTROL_NORMAL, 0xa1);
-
+	//mipi_dbi_command(mipi, ILI9488_CMD_FRAME_RATE_CONTROL_NORMAL, 0xa1);
+	mipi_dbi_command(mipi, ILI9488_CMD_FRAME_RATE_CONTROL_NORMAL, 0xA0);
 
 	/* Display Inversion Control */
 	/*	2 dot inversion */
 	mipi_dbi_command(mipi, ILI9488_CMD_DISPLAY_INVERSION_CONTROL, 0x02);
 
-
 	/* Set Image Function */
-	mipi_dbi_command(mipi, ILI9488_CMD_SET_IMAGE_FUNCTION, 0x00);
+	//mipi_dbi_command(mipi, ILI9488_CMD_SET_IMAGE_FUNCTION, 0x00);
 
+	/* Set Display Function Control */
+	mipi_dbi_command(mipi, ILI9488_CMD_DISPLAY_FUNCTION_CONTROL, 0x02, 0x02, 0x3B);
+
+	/* Set Entry Mode */
+	mipi_dbi_command(mipi, ILI9488_CMD_ENTRY_MODE_SET, 0xC6);
 
 	/* Adjust Control 3 */
 	mipi_dbi_command(mipi, ILI9488_CMD_ADJUST_CONTROL_3,
 			 0xa9, 0x51, 0x2c, 0x82);
 
 	/* CABC control 2 */
-	mipi_dbi_command(mipi, ILI9488_CMD_CABC_CONTROL_2, 0xb0);
-
+	//mipi_dbi_command(mipi, ILI9488_CMD_CABC_CONTROL_2, 0xb0);
 
 	/* Sleep OUT */
 	mipi_dbi_command(mipi, ILI9488_CMD_SLEEP_OUT);
 
 	msleep(120);
 
-	mipi_dbi_command(mipi, ILI9488_CMD_NORMAL_DISP_MODE_ON);
+	//mipi_dbi_command(mipi, ILI9488_CMD_NORMAL_DISP_MODE_ON);
 
 	/* Display ON */
 	mipi_dbi_command(mipi, ILI9488_CMD_DISPLAY_ON);
@@ -357,30 +357,6 @@ static struct spi_driver ili9488_spi_driver = {
 module_spi_driver(ili9488_spi_driver);
 
 /**
- * tinydrm_18memcpy - Copy clip buffer
- * @dst: Destination buffer
- * @vaddr: Source buffer
- * @fb: DRM framebuffer
- * @clip: Clip rectangle area to copy
- */
-void tinydrm_18memcpy(void *dst, void *vaddr, struct drm_framebuffer *fb,
-		    struct drm_clip_rect *clip)
-{
-	unsigned int cpp = drm_format_plane_cpp(fb->format->format, 0);
-	unsigned int pitch = fb->pitches[0];
-	void *src = vaddr + (clip->y1 * pitch) + (clip->x1 * cpp);
-	size_t len = (clip->x2 - clip->x1) * cpp;
-	unsigned int y;
-
-	for (y = clip->y1; y < clip->y2; y++) {
-		memcpy(dst, src, len);
-		src += pitch;
-		dst += len;
-	}
-}
-// EXPORT_SYMBOL(tinydrm_18memcpy);
-
-/**
  * tinydrm_xrgb8888_to_rgb666 - Convert XRGB8888 to RGB666 clip buffer
  * @dst: RGB666 destination buffer
  * @vaddr: XRGB8888 source buffer
@@ -393,7 +369,7 @@ void tinydrm_18memcpy(void *dst, void *vaddr, struct drm_framebuffer *fb,
  */
 void tinydrm_xrgb8888_to_rgb666(u8 *dst, void *vaddr,
 				struct drm_framebuffer *fb,
-				struct drm_clip_rect *clip)
+				struct drm_clip_rect *clip, bool swap)
 {
 	size_t len = (clip->x2 - clip->x1) * sizeof(u32);
 	unsigned int x, y;
@@ -415,19 +391,8 @@ void tinydrm_xrgb8888_to_rgb666(u8 *dst, void *vaddr,
 			src++;
 		}
 	}
-
 	kfree(buf);
 }
-EXPORT_SYMBOL(tinydrm_xrgb8888_to_rgb666);
-
-static void tinydrm_rgb565_to_rgb666(u8 *dst, void *vaddr,
-				     struct drm_framebuffer *fb,
-				     struct drm_clip_rect *clip)
-{
-	// TODO: implement conversion
-}
-EXPORT_SYMBOL(tinydrm_rgb565_to_rgb666);
-
 
 /**
  * mipi_dbi18_buf_copy - Copy a framebuffer, transforming it if necessary
@@ -439,7 +404,7 @@ EXPORT_SYMBOL(tinydrm_rgb565_to_rgb666);
  * Zero on success, negative error code on failure.
  */
 int mipi_dbi18_buf_copy(void *dst, struct drm_framebuffer *fb,
-		      struct drm_clip_rect *clip)
+		      struct drm_clip_rect *clip, bool swap)
 {
 	struct drm_gem_cma_object *cma_obj = drm_fb_cma_get_gem_obj(fb, 0);
 	struct dma_buf_attachment *import_attach = cma_obj->base.import_attach;
@@ -456,10 +421,13 @@ int mipi_dbi18_buf_copy(void *dst, struct drm_framebuffer *fb,
 
 	switch (fb->format->format) {
 	case DRM_FORMAT_RGB565:
-		tinydrm_rgb565_to_rgb666(dst, src, fb, clip);
+		if (swap)
+			tinydrm_swab16(dst, src, fb, clip);
+		else
+			tinydrm_memcpy(dst, src, fb, clip);
 		break;
 	case DRM_FORMAT_XRGB8888:
-		tinydrm_xrgb8888_to_rgb666(dst, src, fb, clip);
+		tinydrm_xrgb8888_to_rgb666(dst, src, fb, clip, swap);
 		break;
 	default:
 		dev_err_once(fb->dev->dev, "Format is not supported: %s\n",
@@ -473,7 +441,6 @@ int mipi_dbi18_buf_copy(void *dst, struct drm_framebuffer *fb,
 					     DMA_FROM_DEVICE);
 	return ret;
 }
-// EXPORT_SYMBOL(mipi_dbi18_buf_copy);
 
 static int mipi_dbi18_fb_dirty(struct drm_framebuffer *fb,
 			     struct drm_file *file_priv,
@@ -484,6 +451,7 @@ static int mipi_dbi18_fb_dirty(struct drm_framebuffer *fb,
 	struct drm_gem_cma_object *cma_obj = drm_fb_cma_get_gem_obj(fb, 0);
 	struct tinydrm_device *tdev = fb->dev->dev_private;
 	struct mipi_dbi *mipi = mipi_dbi_from_tinydrm(tdev);
+	bool swap = mipi->swap_bytes;
 	struct drm_clip_rect clip;
 	int ret = 0;
 	bool full;
@@ -498,10 +466,10 @@ static int mipi_dbi18_fb_dirty(struct drm_framebuffer *fb,
 	DRM_DEBUG("Flushing [FB:%d] x1=%u, x2=%u, y1=%u, y2=%u\n", fb->base.id,
 		  clip.x1, clip.x2, clip.y1, clip.y2);
 
-	if (!mipi->dc || !full ||
+	if (!mipi->dc || !full || swap ||
 	    fb->format->format == DRM_FORMAT_XRGB8888) {
 		tr = mipi->tx_buf;
-		ret = mipi_dbi18_buf_copy(mipi->tx_buf, fb, &clip);
+		ret = mipi_dbi18_buf_copy(mipi->tx_buf, fb, &clip, swap);
 		if (ret)
 			return ret;
 	} else {
@@ -516,7 +484,7 @@ static int mipi_dbi18_fb_dirty(struct drm_framebuffer *fb,
 			 (clip.y2 >> 8) & 0xFF, (clip.y2 - 1) & 0xFF);
 
 	ret = mipi_dbi_command_buf(mipi, MIPI_DCS_WRITE_MEMORY_START, tr,
-				(clip.x2 - clip.x1) * (clip.y2 - clip.y1) * 2);
+				(clip.x2 - clip.x1) * (clip.y2 - clip.y1) * 3);
 
 	return ret;
 }
@@ -574,7 +542,7 @@ int mipi_dbi18_init(struct device *dev, struct mipi_dbi *mipi,
 	if (ret)
 		return ret;
 
-	tdev->drm->mode_config.preferred_depth = 18;
+	tdev->drm->mode_config.preferred_depth = 16;
 	mipi->rotation = rotation;
 
 	drm_mode_config_reset(tdev->drm);
@@ -584,7 +552,6 @@ int mipi_dbi18_init(struct device *dev, struct mipi_dbi *mipi,
 
 	return 0;
 }
-// EXPORT_SYMBOL(mipi_dbi18_init);
 
 MODULE_DESCRIPTION("Ilitek ILI9488 DRM driver");
 MODULE_AUTHOR("BIRD TECHSTEP <t.artsamart@gmail.com>");
