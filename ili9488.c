@@ -157,6 +157,44 @@ static const uint32_t mipi_dbi_formats[] = {
 	DRM_FORMAT_XRGB8888,
 };
 
+/**
+ * tinydrm_xrgb8888_to_rgb666 - Convert XRGB8888 to RGB666 clip buffer
+ * @dst: RGB666 destination buffer
+ * @vaddr: XRGB8888 source buffer
+ * @fb: DRM framebuffer
+ * @clip: Clip rectangle area to copy
+ * @swap: Swap bytes
+ *
+ * Drivers can use this function for RGB666 devices that don't natively
+ * support XRGB8888.
+ */
+void tinydrm_xrgb8888_to_rgb666(u8 *dst, void *vaddr,
+				struct drm_framebuffer *fb,
+				struct drm_clip_rect *clip, bool swap)
+{
+	size_t len = (clip->x2 - clip->x1) * sizeof(u32);
+	unsigned int x, y;
+	u32 *src, *buf;
+
+	buf = kmalloc(len, GFP_KERNEL);
+	if (!buf)
+		return;
+
+	for (y = clip->y1; y < clip->y2; y++) {
+		src = vaddr + (y * fb->pitches[0]);
+		src += clip->x1;
+		memcpy(buf, src, len);
+		src = buf;
+		for (x = clip->x1; x < clip->x2; x++) {
+			*dst++ = ((*src & 0x000000FC));
+			*dst++ = ((*src & 0x0000FC00) >> 8);
+			*dst++ = ((*src & 0x00FC0000) >> 16);
+			src++;
+		}
+	}
+	kfree(buf);
+}
+
 static void sx035hv006_enable(struct drm_simple_display_pipe *pipe,
 			     struct drm_crtc_state *crtc_state,
 			     struct drm_plane_state *plane_state)
@@ -238,24 +276,24 @@ static void sx035hv006_enable(struct drm_simple_display_pipe *pipe,
 	/* Display ON */
 	mipi_dbi_command(mipi, ILI9488_CMD_DISPLAY_ON);
 	msleep(100);    
-			
+
 out_enable:
 	switch (mipi->rotation) {
 	default:
-		addr_mode = ILI9488_MADCTL_MY;
+		addr_mode = ILI9488_MADCTL_MX;
 		break;
 	case 90:
 		addr_mode = ILI9488_MADCTL_MV;
 		break;
 	case 180:
-		addr_mode = ILI9488_MADCTL_MX;
+		addr_mode = ILI9488_MADCTL_MY;
 		break;
 	case 270:
 		addr_mode = ILI9488_MADCTL_MV | ILI9488_MADCTL_MY |
 			    ILI9488_MADCTL_MX;
 		break;
 	}
-	addr_mode |= ILI9488_MADCTL_BGR;
+	//addr_mode |= ILI9488_MADCTL_BGR;
 	mipi_dbi_command(mipi, MIPI_DCS_SET_ADDRESS_MODE, addr_mode);
 	mipi_dbi_enable_flush(mipi, crtc_state, plane_state);
 }
@@ -348,76 +386,16 @@ static void ili9488_shutdown(struct spi_device *spi)
 	tinydrm_shutdown(&mipi->tinydrm);
 }
 
-static int __maybe_unused ili9488_pm_suspend(struct device *dev)
-{
-	struct mipi_dbi *mipi = dev_get_drvdata(dev);
-
-	return drm_mode_config_helper_suspend(mipi->tinydrm.drm);
-}
-
-static int __maybe_unused ili9488_pm_resume(struct device *dev)
-{
-	struct mipi_dbi *mipi = dev_get_drvdata(dev);
-
-	drm_mode_config_helper_resume(mipi->tinydrm.drm);
-
-	return 0;
-}
-
-static const struct dev_pm_ops ili9488_pm_ops = {
-	SET_SYSTEM_SLEEP_PM_OPS(ili9488_pm_suspend, ili9488_pm_resume)
-};
-
 static struct spi_driver ili9488_spi_driver = {
 	.driver = {
 		.name = "ili9488",
-		.owner = THIS_MODULE,
 		.of_match_table = ili9488_of_match,
-		.pm = &ili9488_pm_ops,
 	},
 	.id_table = ili9488_id,
 	.probe = ili9488_probe,
 	.shutdown = ili9488_shutdown,
 };
 module_spi_driver(ili9488_spi_driver);
-
-/**
- * tinydrm_xrgb8888_to_rgb666 - Convert XRGB8888 to RGB666 clip buffer
- * @dst: RGB666 destination buffer
- * @vaddr: XRGB8888 source buffer
- * @fb: DRM framebuffer
- * @clip: Clip rectangle area to copy
- * @swap: Swap bytes
- *
- * Drivers can use this function for RGB666 devices that don't natively
- * support XRGB8888.
- */
-void tinydrm_xrgb8888_to_rgb666(u8 *dst, void *vaddr,
-				struct drm_framebuffer *fb,
-				struct drm_clip_rect *clip, bool swap)
-{
-	size_t len = (clip->x2 - clip->x1) * sizeof(u32);
-	unsigned int x, y;
-	u32 *src, *buf;
-
-	buf = kmalloc(len, GFP_KERNEL);
-	if (!buf)
-		return;
-
-	for (y = clip->y1; y < clip->y2; y++) {
-		src = vaddr + (y * fb->pitches[0]);
-		src += clip->x1;
-		memcpy(buf, src, len);
-		src = buf;
-		for (x = clip->x1; x < clip->x2; x++) {
-			*dst++ = ((*src & 0x00FC0000) >> 16);
-			*dst++ = ((*src & 0x0000FC00) >> 8);
-			*dst++ = ((*src & 0x000000FC));
-			src++;
-		}
-	}
-	kfree(buf);
-}
 
 /**
  * mipi_dbi18_buf_copy - Copy a framebuffer, transforming it if necessary
@@ -567,7 +545,8 @@ int mipi_dbi18_init(struct device *dev, struct mipi_dbi *mipi,
 	if (ret)
 		return ret;
 
-	tdev->drm->mode_config.preferred_depth = 16;
+	//tdev->drm->mode_config.preferred_depth = 16;
+	tdev->drm->mode_config.preferred_depth = 0;
 	mipi->rotation = rotation;
 
 	drm_mode_config_reset(tdev->drm);
