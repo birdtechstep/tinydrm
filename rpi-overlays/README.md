@@ -3,7 +3,7 @@ MakerLAB35 Display 3.5 Inches. 480x320 18 bits color [ili9488] with Capacitive t
 
 ## Compile dtb and put it directly into it's destination:
 ~~~~
-sudo dtc -@ -I dts -O dtb -o /boot/overlays/foo.dtbo foo-overlay.dts
+sudo dtc -@ -I dts -O dtb -o /boot/overlays/makerlabtft35-capacitive.dtbo makerlabtft35-capacitive-overlay.dts
 ~~~~
 ## cmdline.txt
 ~~~~
