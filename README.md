@@ -82,16 +82,23 @@ EndSection
 [ 0 0 1 ]
 ~~~~
 Option "TransformationMatrix" "c0 0 c1 0 c2 c3 0 0 1"
+
 •	c0 = touch_area_width / total_width
+
 •	c2 = touch_area_height / total_height
+
 •	c1 = touch_area_x_offset / total_width
+
 •	c3 = touch_area_y_offset / total_height
 
 #### Example
 
 X 480/1366+480 = 480/1846 = 0.2600216684723727
+
 Y 320/768  = 320/768 = 0.4166666666666667
+
 X Offset 1366/1846 = 0.7399783315276273
+
 
 Option "TransformationMatrix" "0.2600216684723727 0 0.7399783315276273 0 0.4166666666666667 0 0 0 1"
 
