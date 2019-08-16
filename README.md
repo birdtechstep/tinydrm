@@ -76,10 +76,11 @@ EndSection
 ~~~~
 
 ### Set Input cell
+~~~~
 [ 1 0 0 ]
 [ 0 1 0 ]
 [ 0 0 1 ]
-
+~~~~
 Option "TransformationMatrix" "c0 0 c1 0 c2 c3 0 0 1"
 •	c0 = touch_area_width / total_width
 •	c2 = touch_area_height / total_height
