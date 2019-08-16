@@ -46,7 +46,7 @@
                                 pinctrl-0 = <&pitft_pins>;
 
                                 reg = <0>;
-                                spi-max-frequency = <32000000>;
+                                spi-max-frequency = <128000000>;
 
                                 rotation = <0>;
 				reset-gpios = <&gpio 26 0>;
