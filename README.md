@@ -122,7 +122,6 @@ EndSection
 sudo apt install -y mplayer
 wget http://fredrik.hubbe.net/plugger/test.mpg
 mplayer -nolirc -vo fbdev2:/dev/fb1 -zoom -x 480 -y 320 test.mpg
-
 ~~~~
 
 #### BIRD TECHSTEP
