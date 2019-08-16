@@ -125,4 +125,4 @@ mplayer -nolirc -vo fbdev2:/dev/fb1 -zoom -x 480 -y 320 test.mpg
 ~~~~
 
 #### BIRD TECHSTEP
-https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CYA3UGY8TNY82&source=url
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)]https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CYA3UGY8TNY82&source=url
