@@ -12,8 +12,8 @@ fbcon=map:10 fbcon=font:VGA8x16
 ## config.txt
 ~~~~
 dtoverlay=makerlabtft35-capacitive
-dtparam=speed=62000000
-dtparam=fps=60
+dtparam=speed=64000000
+dtparam=rotation=90
 dtparam=touch-swapxy=true
 dtparam=touch-invx=true
 ~~~~
