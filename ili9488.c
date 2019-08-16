@@ -386,10 +386,32 @@ static void ili9488_shutdown(struct spi_device *spi)
 	tinydrm_shutdown(&mipi->tinydrm);
 }
 
+static int __maybe_unused ili9488_pm_suspend(struct device *dev)
+{
+	struct mipi_dbi *mipi = dev_get_drvdata(dev);
+
+	return drm_mode_config_helper_suspend(mipi->tinydrm.drm);
+}
+
+static int __maybe_unused ili9488_pm_resume(struct device *dev)
+{
+	struct mipi_dbi *mipi = dev_get_drvdata(dev);
+
+	drm_mode_config_helper_resume(mipi->tinydrm.drm);
+
+	return 0;
+}
+
+static const struct dev_pm_ops ili9488_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(ili9488_pm_suspend, ili9488_pm_resume)
+};
+
 static struct spi_driver ili9488_spi_driver = {
 	.driver = {
 		.name = "ili9488",
+		.owner = THIS_MODULE,
 		.of_match_table = ili9488_of_match,
+		.pm = &ili9488_pm_ops,
 	},
 	.id_table = ili9488_id,
 	.probe = ili9488_probe,
