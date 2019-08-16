@@ -403,7 +403,8 @@ static int __maybe_unused ili9488_pm_resume(struct device *dev)
 }
 
 static const struct dev_pm_ops ili9488_pm_ops = {
-	SET_SYSTEM_SLEEP_PM_OPS(ili9488_pm_suspend, ili9488_pm_resume)
+	//SET_SYSTEM_SLEEP_PM_OPS(ili9488_pm_suspend, ili9488_pm_resume)
+	SET_SYSTEM_SLEEP_PM_OPS(ili9488_pm_resume, ili9488_pm_suspend)
 };
 
 static struct spi_driver ili9488_spi_driver = {
@@ -567,7 +568,6 @@ int mipi_dbi18_init(struct device *dev, struct mipi_dbi *mipi,
 	if (ret)
 		return ret;
 
-	//tdev->drm->mode_config.preferred_depth = 16;
 	tdev->drm->mode_config.preferred_depth = 0;
 	mipi->rotation = rotation;
 
