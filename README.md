@@ -115,7 +115,7 @@ Section "InputClass"
         Driver "libinput"
         Option "TransformationMatrix" "0.2600216684723727 0 0.7399783315276273 0 0.4166666666666667 0 0 0 1"
 EndSection
-```
+~~~~
 
 ### test video on fb1
 ~~~~
