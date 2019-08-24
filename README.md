@@ -7,11 +7,17 @@ Not everyone is able or want to spend time on getting a driver included in Linux
 
 This repo is dedicated to the maker community and people that make things work.
 
-### rpi kernel
+### First
+~~~
+sudo apt update
+sudo apt upgrade
+sudo reboot
+~~~
+
+### Install Raspberry Pi Kernel Headers
 ~~~~
 sudo apt install git bc bison flex libssl-dev libncurses5-dev
-sudo wget https://raw.githubusercontent.com/notro/rpi-source/master/rpi-source -O /usr/bin/rpi-source && sudo chmod +x /usr/bin/rpi-source && /usr/bin/rpi-source -q --tag-update
-rpi-source
+sudo apt-get install raspberrypi-kernel-headers
 ~~~~
 
 ### tinydrm
