@@ -63,13 +63,13 @@ Section "Device"
 EndSection
 
 Section "Screen"
-        Identifier      "VGA"
+        Identifier      "HDMI"
         Device          "Allwinner A10/A13 FBDEV"
         Monitor         "Monitor name 0"
 EndSection
 
 Section "Screen"
-        Identifier      "HDMI"
+        Identifier      "TFT LCD"
         Device          "FBDEV 1"
         Monitor         "Monitor name 1"
 EndSection
@@ -77,7 +77,7 @@ EndSection
 Section "ServerLayout"
         Identifier      "Default Layout"
         Screen          0 "VGA"
-        Screen          1 "HDMI" RightOf "VGA"
+        Screen          1 "HDMI" RightOf "TFT LCD"
 EndSection
 ~~~~
 
