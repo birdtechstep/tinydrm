@@ -76,7 +76,7 @@ EndSection
 
 Section "ServerLayout"
         Identifier      "Default Layout"
-        Screen          0 "VGA"
+        Screen          0 "TFT LCD"
         Screen          1 "HDMI" RightOf "TFT LCD"
 EndSection
 ~~~~
