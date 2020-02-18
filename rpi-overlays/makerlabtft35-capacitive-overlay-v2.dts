@@ -1,0 +1,99 @@
+/*
+ * Device Tree overlay for MakerLAB TFT 3.5" capacitive touch screen
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+        compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+
+        fragment@0 {
+                target = <&spi0>;
+                __overlay__ {
+                        status = "okay";
+                };
+        };
+
+	fragment@1 {
+		target = <&spidev0>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+        
+        fragment@2 {
+                target = <&gpio>;
+                __overlay__ {
+                        pitft_pins: pitft_pins {
+                                brcm,pins = <4 12 16 27>;
+                                brcm,function = <0 1 1 1>; /* in out out out */
+                        };
+                };
+        };
+
+        fragment@3 {
+                target = <&spi0>;
+                __overlay__ {
+                        /* needed to avoid dtc warning */
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+
+                        pitft: pitft@0{
+                                compatible = "makerlab,sx035hv006";
+                                pinctrl-names = "default";
+                                pinctrl-0 = <&pitft_pins>;
+
+                                reg = <0>;
+                                spi-max-frequency = <128000000>;
+
+                                rotation = <0>;
+				reset-gpios = <&gpio 16 0>;
+                                dc-gpios = <&gpio 27 0>;
+                                backlight = <&backlight>;
+                        };
+                };
+        };
+
+        fragment@4 {
+                target = <&i2c1>;
+                __overlay__ {
+                        /* needed to avoid dtc warning */
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+
+                        ft6236: ft6236@38 {
+                                compatible = "focaltech,ft6236";
+                                reg = <0x38>;
+
+                                interrupt-parent = <&gpio>;
+                                interrupts = <4 2>;
+                                touchscreen-size-x = <320>;
+                                touchscreen-size-y = <480>;
+				touchscreen-inverted-x;
+				touchscreen-swapped-x-y;
+                        };
+                };
+        };
+	
+        fragment@5 {
+		target-path = "/soc";
+		__overlay__ {
+			backlight: backlight {
+				compatible = "gpio-backlight";
+				gpios = <&gpio 12 0>;
+			};
+		};
+	};
+        
+        __overrides__ {
+                speed =   <&pitft>,"spi-max-frequency:0";
+                rotation =  <&pitft>,"rotation:0";
+                touch-sizex = <&ft6236>,"touchscreen-size-x?";
+                touch-sizey = <&ft6236>,"touchscreen-size-y?";
+                touch-invx  = <&ft6236>,"touchscreen-inverted-x?";
+                touch-invy  = <&ft6236>,"touchscreen-inverted-y?";
+                touch-swapxy = <&ft6236>,"touchscreen-swapped-x-y?";
+        };
+};
