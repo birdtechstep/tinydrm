@@ -54,7 +54,7 @@
 #define ST7789_PTLAR		0x30
 #define ST7789_VSCRDEF		0x33      // Vertical scrolling definition (ST7789V)
 #define ST7789_TEOFF		0x34      // Tearing effect line off
-#define ST7789_TEON			0x35      // Tearing effect line on
+#define ST7789_TEON		0x35      // Tearing effect line on
 #define ST7789_MADCTL		0x36      // Memory data access control
 #define ST7789_IDMOFF		0x38      // Idle mode off
 #define ST7789_IDMON		0x39      // Idle mode on
@@ -126,7 +126,7 @@ static void zjy130_ips_enable(struct drm_simple_display_pipe *pipe,
 	mipi_dbi_command(mipi, ST7789_NORON);    // Normal display mode on
 
   //------------------------------display and color format setting--------------------------------//
-	mipi_dbi_command(mipi, ST7789_MADCTL, TFT_MAD_COLOR_ORDER);
+	mipi_dbi_command(mipi, ST7789_MADCTL, ST7789_MADCTL_BGR);
 
   // JLX240 display datasheet
 	mipi_dbi_command(mipi, 0xB6, 0x0A, 0x82);
@@ -166,28 +166,20 @@ out_enable:
 	default:
 		//addr_mode = ST7789_MADCTL_MX;
 		addr_mode = 0x00;
-        //mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
-	    //mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
 		break;
 	case 90:
 		//addr_mode = ST7789_MADCTL_MV;
 		addr_mode = ST7789_MADCTL_MX | ST7789_MADCTL_MV;
-        //mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
-	    //mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
 		break;
 	case 180:
 		//addr_mode = ST7789_MADCTL_MY;
 		addr_mode = ST7789_MADCTL_MX | ST7789_MADCTL_MY;
-        // rowstart 80
-       	// mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
-	  //  mipi_dbi_command(mipi, ST7789_RASET,   80, 0x00, 0x00, 80 + 0xE5);    // Row address set
+                // rowstart 80
 		break;
 	case 270:
 		//addr_mode = ST7789_MADCTL_MV | ST7789_MADCTL_MY | ST7789_MADCTL_MX;
 		addr_mode = ST7789_MADCTL_MV | ST7789_MADCTL_MY;
-        // colstart 80;
-        //mipi_dbi_command(mipi, ST7789_CASET,   80, 0x00, 0x00, 80 + 0xE5);    // Column address set
-	    //mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
+                // colstart 80;
 		break;
 	}
 	addr_mode |= ST7789_MADCTL_BGR;
