@@ -166,28 +166,28 @@ out_enable:
 	default:
 		//addr_mode = ST7789_MADCTL_MX;
 		addr_mode = 0x00;
-        mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
-	    mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
+        //mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
+	    //mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
 		break;
 	case 90:
 		//addr_mode = ST7789_MADCTL_MV;
 		addr_mode = ST7789_MADCTL_MX | ST7789_MADCTL_MV;
-        mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
-	    mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
+        //mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
+	    //mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
 		break;
 	case 180:
 		//addr_mode = ST7789_MADCTL_MY;
 		addr_mode = ST7789_MADCTL_MX | ST7789_MADCTL_MY;
         // rowstart 80
-        mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
-	    mipi_dbi_command(mipi, ST7789_RASET,   80, 0x00, 0x00, 80 + 0xE5);    // Row address set
+       	// mipi_dbi_command(mipi, ST7789_CASET, 0x00, 0x00, 0x00, 0xE5);    // Column address set
+	  //  mipi_dbi_command(mipi, ST7789_RASET,   80, 0x00, 0x00, 80 + 0xE5);    // Row address set
 		break;
 	case 270:
 		//addr_mode = ST7789_MADCTL_MV | ST7789_MADCTL_MY | ST7789_MADCTL_MX;
 		addr_mode = ST7789_MADCTL_MV | ST7789_MADCTL_MY;
         // colstart 80;
-        mipi_dbi_command(mipi, ST7789_CASET,   80, 0x00, 0x00, 80 + 0xE5);    // Column address set
-	    mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
+        //mipi_dbi_command(mipi, ST7789_CASET,   80, 0x00, 0x00, 80 + 0xE5);    // Column address set
+	    //mipi_dbi_command(mipi, ST7789_RASET, 0x00, 0x00, 0x00, 0xE5);    // Row address set
 		break;
 	}
 	addr_mode |= ST7789_MADCTL_BGR;
