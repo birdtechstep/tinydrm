@@ -9,6 +9,7 @@ obj-m	+= mipi-dbi.o
 obj-m	+= ili9225.o
 obj-m	+= ili9341.o
 obj-m += st7789.o
+obj-m += st7796.o
 obj-m	+= ili9488.o
 obj-m	+= mi0283qt.o
 obj-m	+= repaper.o
