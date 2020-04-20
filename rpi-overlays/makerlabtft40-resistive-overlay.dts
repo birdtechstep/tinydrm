@@ -1,0 +1,86 @@
+/*
+ * Device Tree overlay for MakerLAB TFT 4.0" resistive touch screen
+ * Sitronix ST7796S 320RGB x 480 dot 262K Color with Frame Memory Single-Chip TFT Controller/Driver
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+        compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+
+        fragment@0 {
+                target = <&spi0>;
+                __overlay__ {
+                        status = "okay";
+                };
+        };
+
+      	fragment@1 {
+	      	target = <&spidev0>;
+      		__overlay__ {
+	      		status = "disabled";
+      		};
+      	};
+        
+        fragment@2 {
+                target = <&gpio>;
+                __overlay__ {
+                        pitft_pins: pitft_pins {
+                                brcm,pins = <16 13 26 27>;
+                                brcm,function = <0 1 1 1>; /* in out out out */
+                        };
+                };
+        };
+
+        fragment@3 {
+                target = <&spi0>;
+                __overlay__ {
+                        /* needed to avoid dtc warning */
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+
+                        pitft: pitft@0{
+                                compatible = "sitronix,st7796";
+                                pinctrl-names = "default";
+                                pinctrl-0 = <&pitft_pins>;
+
+                                reg = <0>;
+                                spi-max-frequency = <128000000>;
+
+                                rotation = <0>;
+								                reset-gpios = <&gpio 26 0>;
+                                dc-gpios = <&gpio 27 0>;
+                                backlight = <&backlight>;
+                        };
+						
+            						pitft_ts: pitft-ts@1 {
+          			        				compatible = "ti,ads7846";
+          			        				reg = <1>;
+
+	                  						spi-max-frequency = <32000000>;
+						                  	interrupts = <16 2>; /* high-to-low edge triggered */
+          			        				interrupt-parent = <&gpio>;
+		                   					pendown-gpio = <&gpio 16 0>;
+	                   						ti,x-plate-ohms = /bits/ 16 <60>;
+		                  					ti,pressure-max = /bits/ 16 <255>;
+		            				};
+                };
+        };
+	
+        fragment@4 {
+		target-path = "/soc";
+		__overlay__ {
+			backlight: backlight {
+				compatible = "gpio-backlight";
+				gpios = <&gpio 13 0>;
+			};
+		};
+	};
+        
+        __overrides__ {
+                speed =   <&pitft>,"spi-max-frequency:0";
+                rotation =  <&pitft>,"rotation:0";
+                swapxy =	<&pitft_ts>,"ti,swap-xy?";
+        };
+};
