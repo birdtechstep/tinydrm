@@ -27,7 +27,7 @@
                 target = <&gpio>;
                 __overlay__ {
                         pitft_pins: pitft_pins {
-                                brcm,pins = <5 17 27>;
+                                brcm,pins = <23 24 25>;
                                 brcm,function = <1 1 1>; /* in out out out */
                         };
                 };
@@ -49,8 +49,8 @@
                                 spi-max-frequency = <128000000>;
 
                                 rotation = <0>;
-				                reset-gpios = <&gpio 27 0>;
-                                dc-gpios = <&gpio 17 0>;
+				reset-gpios = <&gpio 25 0>;
+                                dc-gpios = <&gpio 24 0>;
                                 backlight = <&backlight>;
                         };
                 };
@@ -61,7 +61,7 @@
 		__overlay__ {
 			backlight: backlight {
 				compatible = "gpio-backlight";
-				gpios = <&gpio 5 0>;
+				gpios = <&gpio 23 0>;
 			};
 		};
 	};
