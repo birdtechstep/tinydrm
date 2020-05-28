@@ -204,7 +204,7 @@ static const struct drm_simple_display_pipe_funcs st7796_pipe_funcs = {
 };
 
 static const struct drm_display_mode st7796_mode = {
-	TINYDRM_MODE(480, 320, 84, 56),
+	TINYDRM_MODE(320, 480, 56, 84),
 };
 
 DEFINE_DRM_GEM_CMA_FOPS(st7796_fops);
