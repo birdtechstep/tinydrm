@@ -26,7 +26,7 @@ git clone -b rpi-6.1.y https://github.com/birdtechstep/tinydrm.git
 cd tinydrm
 make
 
-sudo cp ili9488.ko /lib/modules/`uname -r`/kernel/drivers/gpu/drm/tiny/
+sudo cp st7796.ko /lib/modules/`uname -r`/kernel/drivers/gpu/drm/tiny/
 sudo depmod
 ~~~~
 
