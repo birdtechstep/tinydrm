@@ -18,12 +18,30 @@ sudo dtc -@ -I dts -O dtb -o /boot/firmware/overlays/pitft392-capacitive.dtbo pi
 fbcon=map:10 fbcon=font:VGA8x16
 ~~~~
 ## config.txt
+uncomments
 ~~~~
+dtparam=i2c_arm=on
+dtparam=spi=on
+~~~~
+comments
+~~~~
+dtoverlay=vc4-kms-v3d
+max_framebuffers=2
+~~~~
+add line
+~~~~
+# PiTFT350 320x480 Capacitive (st7796)
 dtoverlay=pitft350-capacitive
-dtparam=speed=62000000
+dtparam=speed=32000000
+dtparam=fps=25
 dtparam=rotation=90
 dtparam=touch-swapxy=true
 dtparam=touch-invx=true
+
+# PiTFT392 320x320 Capacitive (st7796)
+#dtoverlay=pitft392-capacitive
+#dtparam=speed=32000000
+#dtparam=fps=25
 ~~~~
 
 ## PIN CONNECT
@@ -34,9 +52,9 @@ sclk-gpios  = SCLK
 mosi-gpios  = MOSI
 miso-gpios  = MISO
 dc-gpios    = BCM27 [pin13]
-reset-gpios = BCM26 [pin37]
-led-gpios   = BCM13 [pin33]
+reset-gpios = BCM16 [pin36]
+led-gpios   = BCM12 [pin32]
 Capacitive Touch I2C
-interrupts  = BCM4 [pin36]
+interrupts  = BCM4 [pin7]
 ~~~~
 ### BIRD TECHSTEP
